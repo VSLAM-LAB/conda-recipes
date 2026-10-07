@@ -1,0 +1,4 @@
+# pixi environments and build output
+.pixi/
+out/
+output/

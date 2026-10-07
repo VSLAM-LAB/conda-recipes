@@ -1,0 +1,46 @@
+# Conda package for PyPose (https://github.com/pypose/pypose), built from upstream at a fixed commit.
+# Pure Python: one noarch build serves every Python and CUDA version.
+[workspace]
+authors = ["vslamlab <vslamlab@gmail.com>"]
+channels = ["https://prefix.dev/conda-forge"]
+name = "pypose"
+platforms = ["linux-64"]
+version = "0.1.0"
+preview = ["pixi-build"]
+
+[package]
+name = "pypose"
+version = "0.7.3"
+description = "A library for differentiable robotics."
+authors = ["Chen Wang and PyPose Team"]
+license = "Apache-2.0"
+homepage = "https://pypose.org"
+repository = "https://github.com/pypose/pypose"
+
+[package.build]
+backend = { name = "pixi-build-python", version = "0.*" }
+source = { git = "https://github.com/pypose/pypose", rev = "70da60d58529f649dfc33ff44af8fba2662d37f1" }
+
+[package.build.config]
+noarch = true
+installer = "pip"
+ignore-pyproject-manifest = true  # upstream has only setup.py
+
+[package.host-dependencies]
+python = "*"
+pip = "*"
+setuptools = "*"
+pytest-runner = "*"  # setup.py's setup_requires; builds have no PyPI access
+
+[package.run-dependencies]
+python = "*"
+pytorch = ">=2"      # upstream requires torch 2.x; any build (CPU or GPU) works
+numpy = "*"
+packaging = "*"    # imported by pypose/__init__.py, not declared upstream
+
+# Test environment: installs the built package
+[tasks]
+test = "python -I -c 'import torch, pypose as pp; x = pp.randn_SE3(4); print(pp.__version__, (x @ x.Inv()).Log().abs().max().item() < 1e-5)'"
+
+[dependencies]
+pypose = { path = "." }
