@@ -16,6 +16,7 @@ One folder per package, each with a `pixi.toml` that holds:
 | Package | Upstream | Version |
 |---|---|---|
 | `pypose` | [pypose/pypose](https://github.com/pypose/pypose) | 0.7.3 (noarch) |
+| `roma` | [naver/roma](https://github.com/naver/roma) | 1.5.2.1 (noarch) |
 
 ## Building locally
 

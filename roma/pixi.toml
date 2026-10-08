@@ -1,0 +1,45 @@
+# Conda package for RoMa (https://github.com/naver/roma), built from upstream at a fixed commit.
+# Pure Python: one noarch build serves every Python and CUDA version. Used by MASt3R/DUSt3R (MASt3R-SLAM).
+[workspace]
+authors = ["vslamlab <vslamlab@gmail.com>"]
+channels = ["https://prefix.dev/conda-forge"]
+name = "roma"
+platforms = ["linux-64"]
+version = "0.1.0"
+preview = ["pixi-build"]
+
+[package]
+name = "roma"
+version = "1.5.2.1"
+description = "A lightweight library to deal with 3D rotations in PyTorch."
+authors = ["Romain Brégier"]
+license = "BSD-3-Clause"
+homepage = "https://naver.github.io/roma/"
+repository = "https://github.com/naver/roma"
+
+[package.build]
+backend = { name = "pixi-build-python", version = "0.*" }
+source = { git = "https://github.com/naver/roma", rev = "b6f1d0a2e2e60fd86ceec1070c60817e895b94a1" }  # tag v1.5.2.1
+
+[package.build.config]
+noarch = true
+installer = "pip"
+ignore-pyproject-manifest = true  # upstream's pyproject.toml has no [project]; metadata is in setup.py
+
+[package.host-dependencies]
+python = "*"
+pip = "*"
+setuptools = "*"
+wheel = "*"
+
+[package.run-dependencies]
+python = "*"
+pytorch = "*"   # any build (CPU or GPU)
+numpy = "*"
+
+# Test environment: installs the built package
+[tasks]
+test = "python -I -c 'import torch, roma; q = roma.random_unitquat(4); R = roma.unitquat_to_rotmat(q); print(torch.allclose(roma.rotmat_to_unitquat(R).abs(), q.abs(), atol=1e-5))'"
+
+[dependencies]
+roma = { path = "." }
