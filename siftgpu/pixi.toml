@@ -1,0 +1,62 @@
+# Conda package for SiftGPU (Changchang Wu), built from alejandrofontan/siftgpu at a fixed commit: the CMake build
+# with the CUDA backend and an exported CMake package (find_package(SiftGPU CONFIG) -> SiftGPU::sift_gpu). One build
+# per CUDA version (CMAKE_CUDA_ARCHITECTURES all-major). Used by AllFeature-VSLAM.
+[workspace]
+authors = ["vslamlab <vslamlab@gmail.com>"]
+channels = ["https://prefix.dev/conda-forge"]
+name = "siftgpu"
+platforms = ["linux-64"]
+version = "0.1.0"
+preview = ["pixi-build"]
+
+[workspace.build-variants]
+cuda-version = ["12.6.*", "12.9.*"]
+
+[package]
+name = "siftgpu"
+version = "1.0.0"
+description = "SiftGPU: a GPU implementation of SIFT (CUDA and GLSL backends)"
+authors = ["Changchang Wu"]
+license = "LicenseRef-SiftGPU"  # UNC Chapel Hill: educational, research and non-profit use (LICENSE)
+license-file = "LICENSE"
+homepage = "https://github.com/pitzer/SiftGPU"
+repository = "https://github.com/alejandrofontan/siftgpu"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.*" }
+source = { git = "https://github.com/alejandrofontan/siftgpu", rev = "794c45daa5daf495fb9f5e835b84f9597269abaf" }
+
+[package.build.config]
+compilers = ["c", "cxx", "cuda"]
+env = { CMAKE_BUILD_PARALLEL_LEVEL = "4" }
+
+[package.build-dependencies]
+cuda-version = "*"     # build variant: the nvcc the cuda compiler resolves to
+
+[package.host-dependencies]
+cuda-version = "*"     # build variant
+cuda-cudart-dev = "*"
+cuda-driver-dev = "*"  # cuda.h
+libcurand-dev = "*"
+glew = "*"
+libgl-devel = "*"      # find_package(OpenGL)
+libopengl-devel = "*"
+
+# Test environment: installs the built package and compiles + links test/ against it (find_package(SiftGPU CONFIG));
+# nothing is run, since SiftGPU needs a GPU / OpenGL context.
+[tasks]
+test = "cmake -G Ninja -S test -B .pixi/test-build && cmake --build .pixi/test-build && echo 'siftgpu: test program linked'"
+
+[dependencies]
+siftgpu = { path = "." }
+cxx-compiler = "*"
+cmake = "*"
+ninja = "*"
+cuda-version = "12.9.*"
+cuda-nvcc = "*"       # consumers of SiftGPUConfig.cmake need the toolkit: find_dependency(CUDAToolkit)
+cuda-cudart-dev = "*"
+cuda-driver-dev = "*"
+libcurand-dev = "*"
+glew = "*"
+libgl-devel = "*"
+libopengl-devel = "*"

@@ -1,0 +1,40 @@
+# Conda package for BRISK (Leutenegger et al., ICCV 2011), built from alejandrofontan/brisk at a fixed commit: the
+# author's implementation (ETH Zurich ASL) with VSLAM-LAB build fixes. C++ shared library + headers + briskConfig.cmake
+# (find_package(brisk) -> brisk_LIBRARIES / brisk_INCLUDE_DIRS). Used by AllFeature-VSLAM.
+[workspace]
+authors = ["vslamlab <vslamlab@gmail.com>"]
+channels = ["https://prefix.dev/conda-forge"]
+name = "brisk"
+platforms = ["linux-64"]
+version = "0.1.0"
+preview = ["pixi-build"]
+
+[package]
+name = "brisk"
+version = "1.0.0"
+description = "BRISK: Binary Robust Invariant Scalable Keypoints"
+authors = ["Stefan Leutenegger", "Simon Lynen", "Margarita Chli"]
+license = "BSD-3-Clause"
+license-file = "LICENSE"
+homepage = "https://github.com/alejandrofontan/brisk"
+repository = "https://github.com/alejandrofontan/brisk"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.*" }
+source = { git = "https://github.com/alejandrofontan/brisk", rev = "91f8fabc153aa64866924ae91069f6f7e1659d9c" }
+
+[package.build.config]
+env = { CMAKE_BUILD_PARALLEL_LEVEL = "4" }
+
+[package.host-dependencies]
+libopencv = "4.12.*"  # same OpenCV as AllFeature-VSLAM (libopencv's run-exports pin the ABI)
+
+# Test environment: installs the built package and compiles test/ against it (find_package(brisk))
+[tasks]
+test = "cmake -G Ninja -S test -B .pixi/test-build && cmake --build .pixi/test-build && .pixi/test-build/brisk_test"
+
+[dependencies]
+brisk = { path = "." }
+cxx-compiler = "*"
+cmake = "*"
+ninja = "*"

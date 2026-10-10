@@ -1,0 +1,40 @@
+# Conda package for A-KAZE (Alcantarilla et al., BMVC 2013), built from alejandrofontan/akaze (a fork of
+# pablofdezalc/akaze) at a fixed commit. C++ shared library (OpenMP) + headers + akazeConfig.cmake
+# (find_package(akaze) -> akaze_LIBRARIES / akaze_INCLUDE_DIRS). Used by AllFeature-VSLAM.
+[workspace]
+authors = ["vslamlab <vslamlab@gmail.com>"]
+channels = ["https://prefix.dev/conda-forge"]
+name = "akaze"
+platforms = ["linux-64"]
+version = "0.1.0"
+preview = ["pixi-build"]
+
+[package]
+name = "akaze"
+version = "1.0.0"
+description = "A-KAZE features: accelerated nonlinear scale space detection and description"
+authors = ["Pablo F. Alcantarilla", "Jesus Nuevo", "Adrien Bartoli"]
+license = "BSD-3-Clause"
+license-file = "LICENSE"
+homepage = "https://github.com/pablofdezalc/akaze"
+repository = "https://github.com/alejandrofontan/akaze"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.*" }
+source = { git = "https://github.com/alejandrofontan/akaze", rev = "286b561d8ccce2238f5a2b7e253e1b94169339db" }
+
+[package.build.config]
+env = { CMAKE_BUILD_PARALLEL_LEVEL = "4" }
+
+[package.host-dependencies]
+libopencv = "4.12.*"  # same OpenCV as AllFeature-VSLAM (libopencv's run-exports pin the ABI)
+
+# Test environment: installs the built package and compiles test/ against it (find_package(akaze))
+[tasks]
+test = "cmake -G Ninja -S test -B .pixi/test-build && cmake --build .pixi/test-build && .pixi/test-build/akaze_test"
+
+[dependencies]
+akaze = { path = "." }
+cxx-compiler = "*"
+cmake = "*"
+ninja = "*"
