@@ -1,17 +1,18 @@
 # Conda package for BRISK (Leutenegger et al., ICCV 2011), built from alejandrofontan/brisk at a fixed commit: the
 # author's implementation (ETH Zurich ASL) with VSLAM-LAB build fixes. C++ shared library + headers + briskConfig.cmake
-# (find_package(brisk) -> brisk_LIBRARIES / brisk_INCLUDE_DIRS). Used by AllFeature-VSLAM.
+# (find_package(brisk) -> brisk_LIBRARIES / brisk_INCLUDE_DIRS). Used by AllFeature-VSLAM. On arm64 the SSE
+# code paths compile through the bundled sse2neon (v1.8.0) plus the library's own NEON paths.
 [workspace]
 authors = ["vslamlab <vslamlab@gmail.com>"]
 channels = ["https://prefix.dev/conda-forge"]
 name = "brisk"
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64", "linux-aarch64"]  # AllFeature-VSLAM runs on Apple Silicon too
 version = "0.1.0"
 preview = ["pixi-build"]
 
 [package]
 name = "brisk"
-version = "1.0.0"
+version = "1.0.1"
 description = "BRISK: Binary Robust Invariant Scalable Keypoints"
 authors = ["Stefan Leutenegger", "Simon Lynen", "Margarita Chli"]
 license = "BSD-3-Clause"
@@ -21,7 +22,7 @@ repository = "https://github.com/alejandrofontan/brisk"
 
 [package.build]
 backend = { name = "pixi-build-cmake", version = "0.*" }
-source = { git = "https://github.com/alejandrofontan/brisk", rev = "91f8fabc153aa64866924ae91069f6f7e1659d9c" }
+source = { git = "https://github.com/alejandrofontan/brisk", rev = "5c57c0f5fbb9a3c2c6fa46119b0cd1fddbed797c" }
 
 [package.build.config]
 env = { CMAKE_BUILD_PARALLEL_LEVEL = "4" }

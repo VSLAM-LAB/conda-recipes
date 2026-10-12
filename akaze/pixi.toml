@@ -5,13 +5,13 @@
 authors = ["vslamlab <vslamlab@gmail.com>"]
 channels = ["https://prefix.dev/conda-forge"]
 name = "akaze"
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64", "linux-aarch64"]  # AllFeature-VSLAM runs on Apple Silicon too
 version = "0.1.0"
 preview = ["pixi-build"]
 
 [package]
 name = "akaze"
-version = "1.0.0"
+version = "1.0.1"
 description = "A-KAZE features: accelerated nonlinear scale space detection and description"
 authors = ["Pablo F. Alcantarilla", "Jesus Nuevo", "Adrien Bartoli"]
 license = "BSD-3-Clause"
@@ -21,13 +21,16 @@ repository = "https://github.com/alejandrofontan/akaze"
 
 [package.build]
 backend = { name = "pixi-build-cmake", version = "0.*" }
-source = { git = "https://github.com/alejandrofontan/akaze", rev = "286b561d8ccce2238f5a2b7e253e1b94169339db" }
+source = { git = "https://github.com/alejandrofontan/akaze", rev = "6e5df915857fbd942ebec0ae9c79e3cd7d53a74d" }
 
 [package.build.config]
 env = { CMAKE_BUILD_PARALLEL_LEVEL = "4" }
 
 [package.host-dependencies]
 libopencv = "4.12.*"  # same OpenCV as AllFeature-VSLAM (libopencv's run-exports pin the ABI)
+
+[package.host-dependencies."if(osx)"]
+llvm-openmp = "*"     # OpenMP runtime for conda's clang (Apple's has none); run-export -> run dependency
 
 # Test environment: installs the built package and compiles test/ against it (find_package(akaze))
 [tasks]
