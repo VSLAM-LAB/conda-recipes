@@ -1,4 +1,5 @@
-# Builds every package folder (a folder with a pixi.toml [package]) on pushes to main, and publishes one package to
+# Builds every package folder (a folder with a pixi.toml [package]) on pushes to main, on ubuntu (linux-64) and on
+# an Apple Silicon runner (osx-arm64) for the packages that list that platform, and publishes one package to
 # https://prefix.dev/vslamlab/vslamlab when a tag <package>-vX.Y.Z is pushed (e.g. pypose-v0.7.3).
 # Publishing uses prefix.dev trusted publishing (OIDC): prefix.dev > Settings > Repository Access > GitHub,
 # repository VSLAM-LAB/conda-recipes, workflow conda-package.yml, read/write on vslamlab/vslamlab. No API key is stored.
@@ -32,25 +33,50 @@ jobs:
 
   build:
     needs: discover
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         package: ${{ fromJSON(needs.discover.outputs.packages) }}
+        # linux-64 on ubuntu, osx-arm64 on the Apple Silicon runner. A package whose pixi.toml does not list the
+        # runner's platform is skipped there (the step below checks), so CUDA-only packages stay linux-64.
+        os: [ubuntu-latest, macos-15]
     steps:
       - uses: actions/checkout@v7
 
+      - name: Platform supported by this package?
+        id: platform
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          case "$RUNNER_OS-$RUNNER_ARCH" in
+            Linux-X64) platform=linux-64 ;;
+            macOS-ARM64) platform=osx-arm64 ;;
+            *) echo "unknown runner $RUNNER_OS-$RUNNER_ARCH"; exit 1 ;;
+          esac
+          python3 - "$platform" <<'EOF'
+          import os, sys, tomllib
+          platform = sys.argv[1]
+          platforms = tomllib.load(open(f"{os.environ['PACKAGE']}/pixi.toml", 'rb'))['workspace']['platforms']
+          supported = platform in platforms
+          print(f"{os.environ['PACKAGE']}: {platform} {'supported' if supported else 'not listed'} ({platforms})")
+          open(os.environ['GITHUB_OUTPUT'], 'a').write(f"supported={'true' if supported else 'false'}\nname={platform}\n")
+          EOF
+
       # CUDA/PyTorch build environments do not fit in the runner's default free space
       - name: Free disk space
+        if: steps.platform.outputs.supported == 'true' && runner.os == 'Linux'
         run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
 
       - uses: prefix-dev/setup-pixi@v0.11.0
+        if: steps.platform.outputs.supported == 'true'
         with:
           pixi-version: v0.81.0
           run-install: false
 
       - name: Check tag matches package version
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.platform.outputs.supported == 'true' && startsWith(github.ref, 'refs/tags/')
         env:
           PACKAGE: ${{ matrix.package }}
         run: |
@@ -65,15 +91,18 @@ jobs:
 
       # --clean: pixi reuses its build directory otherwise, and stale files end up in the package
       - name: Build
+        if: steps.platform.outputs.supported == 'true'
         run: pixi publish --clean --path "${{ matrix.package }}/pixi.toml" --target-dir "out/${{ matrix.package }}"
 
       # Each package's pixi.toml defines a `test` task (no GPU on the runner)
       - name: Test
+        if: steps.platform.outputs.supported == 'true'
         run: pixi run --manifest-path "${{ matrix.package }}/pixi.toml" test
 
       - uses: actions/upload-artifact@v7
+        if: steps.platform.outputs.supported == 'true'
         with:
-          name: ${{ matrix.package }}-packages
+          name: ${{ matrix.package }}-${{ steps.platform.outputs.name }}-packages
           path: out/${{ matrix.package }}/*.conda
 
   publish:

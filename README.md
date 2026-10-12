@@ -20,8 +20,8 @@ One folder per package, each with a `pixi.toml` that holds:
 |---|---|---|
 | `pypose` | [pypose/pypose](https://github.com/pypose/pypose) | 0.7.3 (noarch) |
 | `roma` | [naver/roma](https://github.com/naver/roma) | 1.5.2.1 (noarch) |
-| `brisk` | [alejandrofontan/brisk](https://github.com/alejandrofontan/brisk) (Leutenegger, ETH ASL) | 1.0.0 (C++, OpenCV 4.12) |
-| `akaze` | [alejandrofontan/akaze](https://github.com/alejandrofontan/akaze) (fork of pablofdezalc/akaze) | 1.0.0 (C++, OpenCV 4.12) |
+| `brisk` | [alejandrofontan/brisk](https://github.com/alejandrofontan/brisk) (Leutenegger, ETH ASL) | 1.0.1 (C++, OpenCV 4.12; linux-64, osx-arm64, linux-aarch64) |
+| `akaze` | [alejandrofontan/akaze](https://github.com/alejandrofontan/akaze) (fork of pablofdezalc/akaze) | 1.0.1 (C++, OpenCV 4.12, OpenMP; linux-64, osx-arm64, linux-aarch64) |
 | `siftgpu` | [alejandrofontan/siftgpu](https://github.com/alejandrofontan/siftgpu) (Changchang Wu) | 1.0.0 (C++/CUDA, CUDA 12.6 and 12.9 builds; research / non-profit license) |
 
 ## Building locally
@@ -33,7 +33,8 @@ pixi run --manifest-path pypose/pixi.toml test                          # test
 
 ## Releasing
 
-CI (`.github/workflows/conda-package.yml`) builds and tests every package on pushes to `main`. To publish one:
+CI (`.github/workflows/conda-package.yml`) builds and tests every package on pushes to `main`, on ubuntu (linux-64)
+and on an Apple Silicon runner for the packages whose `platforms` list `osx-arm64`. To publish one:
 
 1. set `version` in `<package>/pixi.toml` (and the `rev` it builds), commit, push to `main`;
 2. tag it as `<package>-vX.Y.Z` and push the tag, e.g.
